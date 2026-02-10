@@ -1,229 +1,211 @@
-# @caffeine/models
+# @caffeine/value-objects
 
-Biblioteca core do ecossistema **Caffeine.js** que fornece classes base, utilitários de validação de schema, DTOs reutilizáveis e helpers para construção de entidades de domínio.
+Pacote do ecossistema **Caffeine.js** que fornece Value Objects reutilizáveis e type-safe, construídos com validação via schemas TypeBox.
 
 ## 📦 Instalação
 
 ```bash
-bun install @caffeine/models
+bun install @caffeine/value-objects
 ```
 
 Ou, se estiver usando localmente no monorepo:
 
 ```bash
-bun link @caffeine/models
+bun run setup
 ```
 
 ## 🎯 O que este pacote fornece
 
-### Classes Base & Core
+### Classe Base
 
-Importados via `@caffeine/models`:
+A classe abstrata `ValueObject<ValueType, SchemaType>` é o alicerce de todos os Value Objects. Ela encapsula:
 
-| Export | Descrição |
-|--------|-----------|
-| `Entity` | Classe abstrata base para entidades de domínio. Gerencia `id`, `createdAt` e `updatedAt` automaticamente. |
-| `t` | Re-export do TypeBox para criação de schemas de validação. |
+- Um **valor imutável** (`value`) acessível via `readonly`
+- **Metadados** (`IValueObjectMetadata`) que identificam o nome e a camada de origem do VO
+- **Validação automática** contra um schema TypeBox — lança `InvalidPropertyException` se o valor for inválido
 
-Importados via `@caffeine/models/schema`:
+```typescript
+export abstract class ValueObject<ValueType, SchemaType extends t.TSchema> {
+  protected abstract readonly schema: Schema<SchemaType>;
 
-| Export | Descrição |
-|--------|-----------|
-| `Schema` | Wrapper para validação de schemas TypeBox com compilação otimizada e método `.map()`. |
-| `SchemaManager` | Utilitário para construir e validar schemas a partir de strings JSON. |
+  protected constructor(
+    public readonly value: ValueType,
+    protected readonly info: IValueObjectMetadata,
+  ) {}
 
-### Domain & Value Objects
+  protected validate(): void {
+    if (!this.schema.match(this.value))
+      throw new InvalidPropertyException(this.info.name, this.info.layer);
+  }
+}
+```
 
-Importados via `@caffeine/models/value-objects`:
+### Value Objects Disponíveis
 
-| Value Object | Descrição |
-|--------------|-----------|
-| `DefinedStringVO` | String que não pode ser nula, undefined ou vazia. |
-| `StringArrayVO` | Array de strings único (Set) e ordenado. |
-| `UuidVO` | Value Object para validação e tipagem de UUIDs v7. |
-| `UuidArrayVO` | Array de UUIDs únicos. |
-| `UrlVO` | Validação de URLs com suporte a protocolos (http/https). |
+| Value Object | Tipo do Valor | Descrição |
+|---|---|---|
+| `DefinedStringVO` | `string` | String que não pode ser nula, undefined ou vazia. |
+| `SlugVO` | `string` | Extende `DefinedStringVO`. Aplica `slugify()` automaticamente no valor recebido. |
+| `StringArrayVO` | `string[]` | Array de strings validado via schema. |
+| `UrlVO` | `string` | Validação de URLs (http/https). |
+| `UuidVO` | `string` | Validação de UUIDs. |
+| `UuidArrayVO` | `string[]` | Array de UUIDs validado via schema. |
 
-### DTOs (Data Transfer Objects)
+### Tipos
 
-#### DTOs de Aplicação
-
-Importados via `@caffeine/models/dtos`:
-
-| DTO | Descrição |
-|-----|-----------|
-| `EntityDTO` | Schema base para entidades (`id`, `createdAt`, `updatedAt`). |
-| `IdObjectDTO` | Schema para query parameters por ID ({ id: string }). |
-| `SlugObjectDTO` | Schema para query parameters por slug ({ slug: string }). |
-| `PasswordDTO` | Schema para validação de senha. |
-
-#### DTOs Primitivos
-
-Importados via `@caffeine/models/dtos/primitives`:
-
-| DTO | Descrição |
-|-----|-----------|
-| `BooleanDTO` | Schema para booleanos. |
-| `NumberDTO` | Schema para números. |
-| `StringDTO` | Schema para strings. |
-| `StringArrayDTO` | Schema para arrays de strings. |
-| `UrlDTO` | Schema para URLs. |
-| `UuidDTO` | Schema para UUIDs. |
-| `UuidArrayDTO` | Schema para arrays de UUIDs. |
-
-#### DTOs de API
-
-Importados via `@caffeine/models/dtos/api`:
-
-| DTO | Descrição |
-|-----|-----------|
-| `AuthorizationDTO` | Schema para headers de autorização. |
-
-### Factories
-
-Importadas via `@caffeine/models/factories`:
-
-| Factory | Descrição |
-|---------|-----------|
-| `makeEntityFactory` | Gera dados base de entidade com UUID v7 e timestamps. |
-| `makeResponse` | Factory para padronizar respostas de API. |
-
-### Helpers
-
-Importados via `@caffeine/models/helpers`:
-
-| Helper | Descrição |
-|--------|-----------|
-| `generateUUID` | Gera um UUID v7. |
-| `slugify` | Converte uma string para slug (lowercase, sem caracteres especiais). |
-
-### Types
-
-Importados via `@caffeine/models/types`:
-
-| Type | Descrição |
-|------|-----------|
-| `IEntity` | Interface base para entidades. |
-| `IValueObjectMetadata` | Interface para metadados de Value Objects. |
+| Tipo | Descrição |
+|---|---|
+| `IValueObjectMetadata` | Interface com `name` e `layer` — metadados usados para mensagens de erro na validação. |
 
 ## 🚀 Uso
 
-### Criando uma Entidade
+### Importação
+
+Todos os Value Objects são exportados na raiz do pacote:
 
 ```typescript
-import { Entity, t } from "@caffeine/models";
-import { EntityDTO } from "@caffeine/models/dtos";
-import { Schema } from "@caffeine/models/schema";
-
-interface PostData {
-  id: string;
-  createdAt: string;
-  updatedAt?: string;
-  title: string;
-  content: string;
-}
-
-class Post extends Entity<PostData> {
-  private constructor(
-    entity: EntityDTO,
-    public readonly title: string,
-    public readonly content: string
-  ) {
-    super(entity);
-  }
-
-  static make(data: PostData): Post {
-    const entity = Entity.prepare(data);
-    return new Post(entity, data.title, data.content);
-  }
-}
+import {
+  DefinedStringVO,
+  SlugVO,
+  StringArrayVO,
+  UrlVO,
+  UuidVO,
+  UuidArrayVO,
+} from "@caffeine/value-objects";
 ```
 
-### Usando Value Objects
+### Criando um Value Object
+
+Cada VO é criado via o método estático `make`, que instancia o objeto e executa a validação:
 
 ```typescript
-import { UuidVO, StringArrayVO } from "@caffeine/models/value-objects";
+const title = DefinedStringVO.make("Meu Título", {
+  name: "title",
+  layer: "post",
+});
+
+console.log(title.value); // "Meu Título"
+```
+
+### Slug Automático
+
+O `SlugVO` transforma automaticamente o valor recebido em um slug:
+
+```typescript
+const slug = SlugVO.make("Meu Post Incrível!", {
+  name: "slug",
+  layer: "post",
+});
+
+console.log(slug.value); // "meu-post-incrivel"
+```
+
+### Validação de UUID
+
+```typescript
 import { generateUUID } from "@caffeine/models/helpers";
 
-const id = generateUUID();
-const uuidVO = UuidVO.make({ value: id });
-
-const tags = StringArrayVO.make({ value: ["nodejs", "typescript", "nodejs"] });
-console.log(tags.value); // ["nodejs", "typescript"] (duplicatas removidas)
+const id = UuidVO.make(generateUUID(), {
+  name: "id",
+  layer: "user",
+});
 ```
 
-### Validando com Schemas
+### Validação de URL
 
 ```typescript
-import { t } from "@caffeine/models";
-import { Schema } from "@caffeine/models/schema";
+const website = UrlVO.make("https://hoyasumii.dev", {
+  name: "website",
+  layer: "profile",
+});
+```
 
-const UserSchema = t.Object({
-  name: t.String(),
-  email: t.String({ format: "email" }),
-  age: t.Number({ minimum: 18 }),
+### Arrays Tipados
+
+```typescript
+const tags = StringArrayVO.make(["nodejs", "typescript"], {
+  name: "tags",
+  layer: "post",
 });
 
-const schema = new Schema(UserSchema);
-
-const isValid = schema.match({
-  name: "John",
-  email: "john@example.com",
-  age: 25,
-}); // true
-
-// Mapeamento e Type Casting seguro
-const userData = schema.map({
-  name: "John",
-  email: "john@example.com",
-  age: "25" // String numérica
+const relatedIds = UuidArrayVO.make([generateUUID(), generateUUID()], {
+  name: "relatedPostIds",
+  layer: "post",
 });
-// userData.age será number (25)
 ```
 
-## 📁 Estrutura de Exports
+### Tratamento de Erros
+
+Se a validação falhar, uma `InvalidPropertyException` é lançada:
+
+```typescript
+try {
+  DefinedStringVO.make("", { name: "title", layer: "post" });
+} catch (error) {
+  // InvalidPropertyException: propriedade "title" inválida na camada "post"
+}
+```
+
+## 🧩 Criando um Value Object Customizado
+
+Para criar um novo VO, basta estender `ValueObject` e implementar o `schema`:
+
+```typescript
+import { ValueObject } from "@caffeine/value-objects/core";
+import type { IValueObjectMetadata } from "@caffeine/value-objects/types";
+import type { Schema } from "@caffeine/schema";
+
+// 1. Defina o DTO (schema TypeBox)
+// 2. Crie a instância do Schema
+// 3. Extenda ValueObject
+
+export class EmailVO extends ValueObject<string, typeof EmailDTO> {
+  protected override schema: Schema<typeof EmailDTO> = EmailSchema;
+
+  public static make(value: string, info: IValueObjectMetadata): EmailVO {
+    const newVO = new EmailVO(value, info);
+    newVO.validate();
+    return newVO;
+  }
+}
+```
+
+## 📁 Estrutura do Projeto
 
 ```
-@caffeine/models
-├── index.ts (Entity, t)
-│
-├── /schema
-│   ├── Schema
-│   └── SchemaManager
-│
-├── /value-objects
-│   ├── DefinedStringVO
-│   ├── StringArrayVO
-│   ├── UrlVO
-│   ├── UuidVO
-│   └── UuidArrayVO
-│
-├── /dtos
-│   ├── EntityDTO, IdObjectDTO, SlugObjectDTO, PasswordDTO
-│   ├── /primitives (BooleanDTO, StringDTO, UuidDTO, ...)
-│   └── /api (AuthorizationDTO)
-│
-├── /factories
-│   ├── makeEntityFactory
-│   └── makeResponse
-│
-├── /helpers
-│   ├── generateUUID
-│   └── slugify
-│
-└── /types
-    ├── IEntity
-    └── IValueObjectMetadata
+@caffeine/value-objects
+├── src/
+│   ├── index.ts                              # Re-exporta todos os VOs
+│   ├── core/
+│   │   └── value-object.ts                   # Classe abstrata base
+│   ├── types/
+│   │   └── value-object-metadata.interface.ts # Interface IValueObjectMetadata
+│   └── value-objects/
+│       ├── defined-string.value-object.ts
+│       ├── slug.value-object.ts
+│       ├── string-array.value-object.ts
+│       ├── url.value-object.ts
+│       ├── uuid.value-object.ts
+│       └── uuid-array.value-object.ts
 ```
+
+## 🔗 Dependências do Ecossistema
+
+| Pacote | Papel |
+|---|---|
+| `@caffeine/schema` | Wrapper `Schema` para validação com TypeBox |
+| `@caffeine/models` | DTOs e schemas primitivos (`StringDTO`, `UuidDTO`, etc.) |
+| `@caffeine/errors` | Exceptions de domínio (`InvalidPropertyException`) |
+| `@caffeine/entity` | Helpers como `slugify` |
 
 ## 🛠️ Scripts
 
 | Script | Descrição |
-|--------|-----------|
-| `bun run build` | Compila o projeto para CJS e ESM. |
-| `bun run test` | Executa os testes unitários. |
-| `bun run test:coverage` | Executa os testes com cobertura. |
-| `bun setup` | Compila e registra o pacote localmente via `bun link`. |
+|---|---|
+| `bun run build` | Compila o projeto para CJS e ESM com declarações de tipo. |
+| `bun run test:unit` | Executa os testes unitários com Vitest. |
+| `bun run test:coverage` | Executa os testes com relatório de cobertura. |
+| `bun run setup` | Compila e registra o pacote localmente via `bun link`. |
 
 ## 📄 Licença
 
