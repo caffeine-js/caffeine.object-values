@@ -7,14 +7,14 @@ describe("DefinedStringVO", () => {
 	it("should create a valid instance", () => {
 		const vo = DefinedStringVO.make("test", {
 			name: "test",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(vo.value).toBe("test");
 	});
 
 	it("should throw InvalidPropertyException when value is empty", () => {
 		expect(() =>
-			DefinedStringVO.make("", { name: "test", layer: "domain" }),
+			DefinedStringVO.make("", { name: "test", source: "domain" }),
 		).toThrow(InvalidPropertyException);
 	});
 });

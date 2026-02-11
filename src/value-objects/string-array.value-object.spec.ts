@@ -6,7 +6,7 @@ describe("StringArrayVO", () => {
 	it("should create a valid instance with strings", () => {
 		const vo = StringArrayVO.make(["one", "two"], {
 			name: "tags",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(vo.value).toEqual(["one", "two"]);
 	});
@@ -14,7 +14,7 @@ describe("StringArrayVO", () => {
 	it("should create a valid instance with empty array", () => {
 		const vo = StringArrayVO.make([], {
 			name: "tags",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(vo.value).toEqual([]);
 	});

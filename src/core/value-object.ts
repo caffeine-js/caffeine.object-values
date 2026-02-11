@@ -13,6 +13,6 @@ export abstract class ValueObject<ValueType, SchemaType extends t.TSchema> {
 
 	protected validate(): void {
 		if (!this.schema.match(this.value))
-			throw new InvalidPropertyException(this.info.name, this.info.layer);
+			throw new InvalidPropertyException(this.info.name, this.info.source);
 	}
 }

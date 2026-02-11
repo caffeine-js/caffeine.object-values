@@ -7,13 +7,13 @@ import { generateUUID } from "@caffeine/entity/helpers";
 describe("UuidVO", () => {
 	it("should create a valid instance", () => {
 		const uuid = generateUUID();
-		const vo = UuidVO.make(uuid, { name: "id", layer: "domain" });
+		const vo = UuidVO.make(uuid, { name: "id", source: "domain" });
 		expect(vo.value).toBe(uuid);
 	});
 
 	it("should throw InvalidPropertyException when value is not a valid UUID", () => {
 		expect(() =>
-			UuidVO.make("invalid-uuid", { name: "id", layer: "domain" }),
+			UuidVO.make("invalid-uuid", { name: "id", source: "domain" }),
 		).toThrow(InvalidPropertyException);
 	});
 });

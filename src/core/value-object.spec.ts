@@ -9,7 +9,7 @@ class TestVO extends ValueObject<string, typeof StringDTO> {
 	protected schema = StringSchema;
 
 	public static make(value: string) {
-		const vo = new TestVO(value, { name: "test", layer: "domain" });
+		const vo = new TestVO(value, { name: "test", source: "domain" });
 		vo.validate();
 		return vo;
 	}

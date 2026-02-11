@@ -6,7 +6,7 @@ describe("SlugVO", () => {
 	it("should create a valid slug from a string", () => {
 		const slug = SlugVO.make("My Title", {
 			name: "slug",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(slug.value).toBe("my-title");
 	});
@@ -14,13 +14,13 @@ describe("SlugVO", () => {
 	it("should keep an already valid slug", () => {
 		const slug = SlugVO.make("my-title", {
 			name: "slug",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(slug.value).toBe("my-title");
 	});
 
 	it("should throw InvalidPropertyException for invalid value", () => {
-		expect(() => SlugVO.make("", { name: "slug", layer: "domain" })).toThrow(
+		expect(() => SlugVO.make("", { name: "slug", source: "domain" })).toThrow(
 			InvalidPropertyException,
 		);
 	});

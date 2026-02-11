@@ -9,7 +9,7 @@ describe("UuidArrayVO", () => {
 		const uuid = generateUUID();
 		const vo = UuidArrayVO.make([uuid], {
 			name: "uuids",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(vo.value).toEqual([uuid]);
 	});
@@ -19,7 +19,7 @@ describe("UuidArrayVO", () => {
 		const uuid2 = generateUUID();
 		const vo = UuidArrayVO.make([uuid1, uuid2], {
 			name: "uuids",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(vo.value).toEqual([uuid1, uuid2]);
 	});
@@ -27,14 +27,14 @@ describe("UuidArrayVO", () => {
 	it("should allow empty array if schema permits (assuming minItems default is 0)", () => {
 		const vo = UuidArrayVO.make([], {
 			name: "uuids",
-			layer: "domain",
+			source: "domain",
 		});
 		expect(vo.value).toEqual([]);
 	});
 
 	it("should throw InvalidPropertyException when array contains invalid UUID", () => {
 		expect(() =>
-			UuidArrayVO.make(["invalid-uuid"], { name: "uuids", layer: "domain" }),
+			UuidArrayVO.make(["invalid-uuid"], { name: "uuids", source: "domain" }),
 		).toThrow(InvalidPropertyException);
 	});
 });
