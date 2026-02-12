@@ -5,4 +5,5 @@ export {
 	UrlVO,
 	UuidArrayVO,
 	UuidVO,
+	DateTimeVO,
 } from "./value-objects";
