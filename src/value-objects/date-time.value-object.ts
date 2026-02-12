@@ -14,4 +14,8 @@ export class DateTimeVO extends ValueObject<string, typeof DateTimeDTO> {
 
 		return newVO;
 	}
+
+	public static now(info: IValueObjectMetadata): DateTimeVO {
+		return DateTimeVO.make(new Date().toISOString(), info);
+	}
 }

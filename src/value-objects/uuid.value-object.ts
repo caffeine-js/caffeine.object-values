@@ -1,5 +1,6 @@
 import { ValueObject } from "@/core";
 import type { IValueObjectMetadata } from "@/types";
+import { generateUUID } from "@caffeine/entity/helpers";
 import type { UuidDTO } from "@caffeine/models/dtos/primitives";
 import { UuidSchema } from "@caffeine/models/schemas/primitives";
 
@@ -14,5 +15,9 @@ export class UuidVO extends ValueObject<string, typeof UuidDTO> {
 		newVO.validate();
 
 		return newVO;
+	}
+
+	public static generate(info: IValueObjectMetadata): UuidVO {
+		return UuidVO.make(generateUUID(), info);
 	}
 }
